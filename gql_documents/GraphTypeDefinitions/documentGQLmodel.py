@@ -93,7 +93,7 @@ class DocumentGQLModel:
         return self.dspace_id
 
 
-@strawberry.input()
+@strawberry.input(description="""Input for document creation""")
 class DocumentInsertGQLModel:
     description: Optional[str] = strawberry.field(
         default=None, description="Brief description of document"
@@ -105,7 +105,7 @@ class DocumentInsertGQLModel:
     group_id: Optional[uuid.UUID] = strawberry.field(default=None, description="Owner group ID")
 
 
-@strawberry.input()
+@strawberry.input(description="""Input for document update""")
 class DocumentUpdateGQLModel:
     id: uuid.UUID = strawberry.field(default=None, description="Primary key")
     lastchange: datetime.datetime = strawberry.field(
@@ -121,7 +121,7 @@ class DocumentUpdateGQLModel:
     group_id: Optional[uuid.UUID] = strawberry.field(default=None, description="Owner group ID")
 
 
-@strawberry.type()
+@strawberry.type(description="""Result of operation""")
 class DocumentResultGQLModel:
     id: Optional[uuid.UUID] = strawberry.field(
         default=None, description="Primary key of table row"
@@ -142,7 +142,7 @@ class DocumentResultGQLModel:
         return result
 
 
-@strawberry.type()
+@strawberry.type(description="""Result of operation""")
 class DspaceResultModel:
     msg: str = strawberry.field(default=None, description="""status of operation""")
 
