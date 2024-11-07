@@ -17,5 +17,5 @@ class DocumentModel(BaseModel):
 
     created = Column(DateTime, server_default=sqlalchemy.sql.func.now(), comment="Date and time the document was created")
     lastchange = Column(DateTime, server_default=sqlalchemy.sql.func.now(), comment="Date and time the document was last changed")
-    changed_by = Column(Uuid, index=True, comment="ID of the user who last changed the document")
+    changedby_id = Column(Uuid, index=True, comment="ID of the user who last changed the document")
     document_type = Column(String, comment="Type of the document")
