@@ -7,7 +7,7 @@ from .Base import BaseModel
 # je-li treba, muzete definovat modely obsahujici jen id polozku, na ktere se budete odkazovat
 #
 ###########################################################################################################################
-from .documentDBModel import DocumentModel
+from .documentDBModel import DocumentModel, DocumentFolderModel
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

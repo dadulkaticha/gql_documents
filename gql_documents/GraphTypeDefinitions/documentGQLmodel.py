@@ -1,7 +1,10 @@
 import strawberry
 import datetime
 import uuid
+import typing
 from typing import Union, Optional, List
+
+
 import gql_documents.GraphTypeDefinitions
 from DspaceAPI.Reguests import (
     createWorkspaceItem,
@@ -27,6 +30,8 @@ from DspaceAPI.Reguests import (
 def getLoaders(info):
     return info.context["all"]
 
+
+DocumentFolderGQLModel = typing.Annotated["DocumentFolderGQLModel", strawberry.lazy('.documentFolderGQLmodel')]
 
 ###########################################################################################################################
 #
@@ -60,7 +65,11 @@ class DocumentGQLModel:
 
     @strawberry.field(description="""Primary key""")
     def id(self) -> uuid.UUID:
-        return self.id
+        return self.i
+    
+    @strawberry.field(description="""Type of the document""")
+    def document_type(self) -> str:
+        return self.document_type
 
     @strawberry.field(description="""Brief description""")
     def description(self) -> Optional[str]:
@@ -91,6 +100,10 @@ class DocumentGQLModel:
     @strawberry.field(description="""DSpace id""")
     def dspace_id(self) -> uuid.UUID:
         return self.dspace_id
+    
+    @strawberry.field(description="""DSpace id""")
+    async def folder(self) -> typing.Optional["DocumentFolderGQLModel"]:
+        return None
 
 
 @strawberry.input(description="""Input for document creation""")

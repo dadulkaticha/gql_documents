@@ -2,7 +2,7 @@ from uoishelpers.dataloaders import createIdLoader
 from functools import cache
 
 from gql_documents.DBDefinitions import (
-    DocumentModel,
+    DocumentModel, DocumentFolderModel
 )
 
 
@@ -12,7 +12,10 @@ async def createLoaders(asyncSessionMaker):
         @cache
         def documents(self):
             return createIdLoader(asyncSessionMaker, DocumentModel)
-
+        @property
+        @cache
+        def folders(self):
+            return createIdLoader(asyncSessionMaker, DocumentFolderModel)
     return Loaders()
 
 
