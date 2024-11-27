@@ -1,7 +1,10 @@
+import os
+
 from typing import List
 import typing
 import asyncio
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 
@@ -48,7 +51,7 @@ async def RunOnceAndReturnSessionMaker():
 
     import os
 
-    makeDrop = os.environ.get("MakeDrop", False)
+    makeDrop = os.environ.get("DEMODATA", False) in ["1", "true", "True", "TRUE"]
     result = await startEngine(
         connectionstring=connectionString, makeDrop=makeDrop, makeUp=True
     )
@@ -123,6 +126,10 @@ async def startup_event():
     initizalizedEngine = await RunOnceAndReturnSessionMaker()
     return None
 
+@app.get("/voyager", response_class=FileResponse)
+async def graphiql():
+    realpath = os.path.realpath("./voyager.html")
+    return realpath
 
 print("All initialization is done")
 

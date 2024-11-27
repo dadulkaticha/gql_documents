@@ -56,3 +56,6 @@ pytest --cov-report term-missing --cov=gql_documents tests
 
 Linux demo run:
 DEMO=true uvicorn main:app --reload
+
+Příkaz na spuštění
+uvicorn main:app --env-file environment.txt
