@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import strawberry
 from strawberry.fastapi import GraphQLRouter
+from gql_documents.Dataloaders import createLoadersContext
 
 ## Definice DB typu (pomoci SQLAlchemy https://www.sqlalchemy.org/)
 ## SQLAlchemy zvoleno kvuli moznost komunikovat s DB asynchronne
@@ -118,7 +119,15 @@ from gql_documents.GraphTypeDefinitions import schema
 graphql_app = MyGraphQL(schema, graphiql=True, allow_queries_via_get=True)
 
 app = FastAPI()
-app.mount("/gql", graphql_app)
+
+async def get_context():
+    initizalizedEngine = await RunOnceAndReturnSessionMaker()
+    context = createLoadersContext(initizalizedEngine)
+    return context
+
+graphiql = GraphQLRouter(schema=schema, context_getter=get_context)
+
+app.include_router(graphiql, prefix="/gql")
 
 
 @app.on_event("startup")

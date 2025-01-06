@@ -6,7 +6,7 @@ from gql_documents.DBDefinitions import (
 )
 
 
-async def createLoaders(asyncSessionMaker):
+def createLoaders(asyncSessionMaker):
     class Loaders:
         @property
         @cache

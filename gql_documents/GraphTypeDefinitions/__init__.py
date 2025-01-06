@@ -44,5 +44,9 @@ class Query:
     communities_page = communities_page
     collections_page = collections_page
 
+    from .documentFolderGQLmodel import document_folder_by_id
 
+from uoishelpers.schema import WhoAmIExtension
+
+extensions = []
 schema = strawberry.federation.Schema(query=Query, mutation=Mutation)

@@ -28,9 +28,9 @@ from DspaceAPI.Reguests import (
 
 
 def getLoaders(info):
-    return info.context["all"]
+    return info.context["loaders"]
 
-
+#from uoishelpers.resolvers import getLoader
 DocumentFolderGQLModel = typing.Annotated["DocumentFolderGQLModel", strawberry.lazy('.documentFolderGQLmodel')]
 
 ###########################################################################################################################
@@ -47,6 +47,10 @@ DocumentFolderGQLModel = typing.Annotated["DocumentFolderGQLModel", strawberry.l
     description="""Entity representing a document""",
 )
 class DocumentGQLModel:
+    @classmethod
+    def getLoader(cls, info: strawberry.types.Info):
+        return getLoaders(info).documents
+    
     @classmethod
     async def resolve_reference(cls, info: strawberry.types.Info, id: uuid.UUID):
         result = None
@@ -92,7 +96,7 @@ class DocumentGQLModel:
         # sync method which returns Awaitable :)
         return self.author_id
     
-    @strawberry.field(description="""Author of the document""")
+    @strawberry.field(description="""Group of the document""")
     def group_id(self) -> uuid.UUID:
         # sync method which returns Awaitable :)
         return self.group_id
@@ -324,7 +328,9 @@ async def collections_page(
 # Mutation section
 #
 #####################################################################
-
+from uoishelpers.resolvers import Insert, InsertError
+from uoishelpers.resolvers import Update, UpdateError
+from uoishelpers.resolvers import Delete, DeleteError
 
 @strawberry.mutation(description="Defines a new document")
 async def document_insert(
@@ -372,8 +378,7 @@ async def document_insert(
 
 @strawberry.mutation(description="Update existing document")
 async def document_update(
-    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel
-) -> DocumentResultGQLModel:
+    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel) -> typing.Union[DocumentResultGQLModel, UpdateError[DocumentResultGQLModel]]:
     loader = getLoaders(info).documents
 
     newName = document.name
@@ -438,8 +443,7 @@ async def dspace_add_bitstream(
 
 @strawberry.mutation(description="Create new comunnity")
 async def community_insert(
-    self, info: strawberry.types.Info, name: str, language: str
-) -> DspaceResultModel:
+    self, info: strawberry.types.Info, name: str, language: str) -> typing.Union [DspaceResultModel, InsertError[DspaceResultModel]]:
     result = DspaceResultModel()
 
     response = await createCommunity(name, language)
@@ -455,8 +459,7 @@ async def community_insert(
 
 @strawberry.mutation(description="Create new collection")
 async def collection_insert(
-    self, info: strawberry.types.Info, parentId: uuid.UUID, name: str, language: str
-) -> DspaceResultModel:
+    self, info: strawberry.types.Info, parentId: uuid.UUID, name: str, language: str) -> typing.Union [DspaceResultModel, InsertError[DspaceResultModel]]:
     result = DspaceResultModel()
 
     response = await createCollection(parentId=parentId, name=name, language=language)
@@ -477,8 +480,7 @@ async def collection_insert(
 
 @strawberry.mutation(description="Deletes a document")
 async def document_delete(
-    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel
-) -> DocumentResultGQLModel:
+    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel) -> typing.Union [DocumentResultGQLModel, DeleteError[DocumentResultGQLModel]]:
     loader = getLoaders(info).documents
     result = DocumentResultGQLModel()
     rows = await loader.filter_by(id=document.id)

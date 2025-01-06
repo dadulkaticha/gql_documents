@@ -261,6 +261,15 @@
         }
     ],
 
+    "document_folders": [
+        {
+            "id": "9baf3b54-ae0f-11ed-9bd8-0242ac110002",
+            "name": "22-5KB",
+            "group_id": "2d9dcd22-a4a2-11ed-b9df-0242ac120003",
+            "parent_id": null
+        }
+    ],
+
     "documents": [
         {
             "id": "b7e8c6f7-9e51-4712-9dc5-9b5e3ad5a2fa",
@@ -268,14 +277,16 @@
             "name": "Example name",
             "author_id": "89d1f3cc-ae0f-11ed-9bd8-0242ac110002",
             "description": "Example description",
-            "group_id": "98d1f3cc-ae0f-11ed-9ac8-0242ac110002"
+            "group_id": "98d1f3cc-ae0f-11ed-9ac8-0242ac110002",
+            "folder_id": "9baf3b54-ae0f-11ed-9bd8-0242ac110002"
         },
         {
             "id": "04d5286d-50d2-4b07-97de-7407c62c21c1",
             "dspace_id": "1d8dc5ca-a4a2-11ed-b9df-0242ac120004",
             "name": "Presentation",
             "author_id": "89d1f3cc-ae0f-11ed-9bd8-0242ac110002",
-            "group_id": "98d1f3cc-ae0f-11ed-9ac8-0242ac110002"
+            "group_id": "98d1f3cc-ae0f-11ed-9ac8-0242ac110002",
+            "folder_id": "9baf3b54-ae0f-11ed-9bd8-0242ac110002"
         },
         {
             "id": "0d919a2c-fe56-4b10-9e9d-b8c5715a6666",
@@ -283,7 +294,8 @@
             "name": "Diploma",
             "author_id": "2d9dc868-a4a2-11ed-b9df-0242ac120003",
             "description": "Brief description",
-            "group_id": "98d1f3cc-ae0f-11ed-9ac8-0242ac110002"
+            "group_id": "98d1f3cc-ae0f-11ed-9ac8-0242ac110002",
+            "folder_id": "9baf3b54-ae0f-11ed-9bd8-0242ac110002"
         }
     ],
     

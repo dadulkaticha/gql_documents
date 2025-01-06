@@ -4,6 +4,7 @@ from gql_documents.DBDefinitions import (
     # ExternalIdCategoryModel,
     # ExternalIdModel,
     DocumentModel,
+    DocumentFolderModel,
 )
 from sqlalchemy.future import select
 import uuid
@@ -58,7 +59,7 @@ async def initDB(asyncSessionMaker):
     dbModels = []
     if not (default == os.environ.get("DEMO", defaultNoDemo)):
         dbModels = [
-            DocumentModel,
+            DocumentModel, DocumentFolderModel,
         ]
 
     jsonData = get_demodata()
