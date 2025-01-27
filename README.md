@@ -52,7 +52,7 @@ Start the app inside the docker using docker-compose.yml (recommended)
 - in this version of our project the database is populated with random data (not all database is populated - for testing purposes only)
   <br/><br/>
 
-pytest --cov-report term-missing --cov=gql_documents tests
+pytest --cov-report term-missing --cov=src tests
 
 Linux demo run:
 DEMO=true uvicorn main:app --reload

@@ -1,8 +1,8 @@
 version: "3.10"
 
 services:
-  gql_documents:
-    image: gql_documents
+  src:
+    image: src
     build:
       # context definuje cestu k popisu
       context: .

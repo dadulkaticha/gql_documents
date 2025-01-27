@@ -7,15 +7,15 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import strawberry
 from strawberry.fastapi import GraphQLRouter
-from gql_documents.Dataloaders import createLoadersContext
+from src.Dataloaders import createLoadersContext
 
 ## Definice DB typu (pomoci SQLAlchemy https://www.sqlalchemy.org/)
 ## SQLAlchemy zvoleno kvuli moznost komunikovat s DB asynchronne
 ## https://docs.sqlalchemy.org/en/14/core/future.html?highlight=select#sqlalchemy.future.select
-from gql_documents.DBDefinitions import startEngine, ComposeConnectionString
+from src.DBDefinitions import startEngine, ComposeConnectionString
 
 ## Zabezpecuje prvotni inicializaci DB a definovani Nahodne struktury pro "Univerzity"
-from gql_documents.DBFeeder import initDB
+from src.DBFeeder import initDB
 
 connectionString = ComposeConnectionString()
 
@@ -78,7 +78,7 @@ async def RunOnceAndReturnSessionMaker():
 
 from strawberry.asgi import GraphQL
 
-from gql_documents.Dataloaders import createLoaders
+from src.Dataloaders import createLoaders
 
 
 class MyGraphQL(GraphQL):
@@ -113,7 +113,7 @@ class MyGraphQL(GraphQL):
 
 ## Definice GraphQL typu (pomoci strawberry https://strawberry.rocks/)
 ## Strawberry zvoleno kvuli moznosti mit federovane GraphQL API (https://strawberry.rocks/docs/guides/federation, https://www.apollographql.com/docs/federation/)
-from gql_documents.GraphTypeDefinitions import schema
+from src.GraphTypeDefinitions import schema
 
 ## ASGI app, kterou "moutneme"
 graphql_app = MyGraphQL(schema, graphiql=True, allow_queries_via_get=True)

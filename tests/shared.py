@@ -3,10 +3,10 @@ import sys
 import asyncio
 
 # setting path
-sys.path.append("../gql_documents")
+sys.path.append("../src")
 
-from gql_documents.DBDefinitions import BaseModel
-from gql_documents.DBDefinitions import DocumentModel
+from src.DBDefinitions import BaseModel
+from src.DBDefinitions import DocumentModel
 
 
 async def prepare_in_memory_sqllite():
@@ -26,7 +26,7 @@ async def prepare_in_memory_sqllite():
     return async_session_maker
 
 
-from gql_documents.DBFeeder import get_demodata
+from src.DBFeeder import get_demodata
 
 
 async def prepare_demodata(async_session_maker):
@@ -41,7 +41,7 @@ async def prepare_demodata(async_session_maker):
     )
 
 
-from gql_documents.Dataloaders import createLoaders
+from src.Dataloaders import createLoaders
 
 
 async def createContext(asyncSessionMaker):

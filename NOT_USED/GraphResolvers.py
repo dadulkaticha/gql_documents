@@ -14,7 +14,7 @@ from uoishelpers.resolvers import (
 )
 from uoishelpers.resolvers import putSingleEntityToDb
 
-from gql_documents.DBDefinitions import BaseModel
+from src.DBDefinitions import BaseModel
 
 ###########################################################################################################################
 #
@@ -22,7 +22,7 @@ from gql_documents.DBDefinitions import BaseModel
 #
 ###########################################################################################################################
 
-from gql_documents.DBDefinitions import (
+from src.DBDefinitions import (
     DocumentModel,
 )
 

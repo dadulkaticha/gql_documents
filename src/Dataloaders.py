@@ -1,7 +1,7 @@
 from uoishelpers.dataloaders import createIdLoader
 from functools import cache
 
-from gql_documents.DBDefinitions import (
+from src.DBDefinitions import (
     DocumentModel, DocumentFolderModel
 )
 

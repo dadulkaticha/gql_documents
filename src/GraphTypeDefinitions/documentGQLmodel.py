@@ -5,7 +5,7 @@ import typing
 from typing import Union, Optional, List
 
 
-import gql_documents.GraphTypeDefinitions
+import src.GraphTypeDefinitions
 from DspaceAPI.Reguests import (
     createWorkspaceItem,
     addTitleItem,
