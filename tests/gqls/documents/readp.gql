@@ -1,0 +1,5 @@
+query ReadDocuments {
+  documentsPage {
+    id
+  }
+}

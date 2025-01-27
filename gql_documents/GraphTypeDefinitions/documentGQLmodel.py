@@ -412,8 +412,7 @@ async def document_update(
 
 @strawberry.mutation(description="Add bitstream to dpsace")
 async def dspace_add_bitstream(
-    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel, filename: str
-) -> DspaceResultModel:
+    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel, filename: str) -> typing.Union[DspaceResultModel, InsertError[DspaceResultModel]]:
     result = DspaceResultModel()
 
     document = await DocumentGQLModel.resolve_reference(info, document.id)

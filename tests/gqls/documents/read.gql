@@ -1,0 +1,5 @@
+query ReadDocument ($id:UUID!){
+  documentById(id: $id) {
+    id
+  }
+}
