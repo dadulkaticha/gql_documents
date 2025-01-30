@@ -1,499 +1,364 @@
-import strawberry
+import asyncio
+import dataclasses
 import datetime
-import uuid
 import typing
-from typing import Union, Optional, List
+import strawberry
 
+from uoishelpers.gqlpermissions import (
+    OnlyForAuthentized,
+    SimpleInsertPermission, 
+    SimpleUpdatePermission, 
+    SimpleDeletePermission
+)    
+from uoishelpers.resolvers import (
+    getLoadersFromInfo, 
+    createInputs,
 
-import src.GraphTypeDefinitions
-from DspaceAPI.Reguests import (
-    createWorkspaceItem,
-    addTitleItem,
-    updateTitleItem,
-    getItem,
-    addBundleItem,
-    getBundleId,
-    addBitstreamsItem,
-    getBitstreamItem,
-    downloadItemContent,
-    updateDescriptionItem,
-    addDescriptionItem,
-    setWithdrawnItem,
-    getCommunities,
-    createCommunity,
-    createCollection,
-    getCollections,
-    createItem,
+    InsertError, 
+    Insert, 
+    UpdateError, 
+    Update, 
+    DeleteError, 
+    Delete,
+
+    PageResolver,
+    VectorResolver,
+    ScalarResolver
 )
 
 
-def getLoaders(info):
-    return info.context["loaders"]
-
-#from uoishelpers.resolvers import getLoader
-DocumentFolderGQLModel = typing.Annotated["DocumentFolderGQLModel", strawberry.lazy('.documentFolderGQLmodel')]
-
-###########################################################################################################################
-#
-# zde definujte sve nove GQL modely, kde mate zodpovednost
-#
-# - venujte pozornost metode resolve reference, tato metoda je dulezita pro komunikaci mezi prvky federace,
-#
-###########################################################################################################################
+#°_°
+from .BaseGQLModel import BaseGQLModel, IDType
 
 
+# GroupGQLModel = typing.Annotated["GroupGQLModel", strawberry.lazy(".GroupGQLModel")]
+# EventGQLModel = typing.Annotated["EventGQLModel", strawberry.lazy(".EventGQLModel")]
+# DocumentTypeGQLModel = typing.Annotated["DocumentTypeGQLModel", strawberry.lazy(".DocumentTypeGQLModel")]
+# DocumentEventStateTypeGQLModel = typing.Annotated["DocumentEventStateTypeGQLModel", strawberry.lazy(".DocumentEventStateTypeGQLModel")]
+# DocumentEventGQLModel = typing.Annotated["DocumentEventGQLModel", strawberry.lazy(".DocumentEventGQLModel")]
+
+# region DocumentGQLModel
 @strawberry.federation.type(
-    keys=["id"],
-    description="""Entity representing a document""",
+    keys=["id"], description="""Entity representing a Document"""
 )
-class DocumentGQLModel:
+class DocumentGQLModel(BaseGQLModel):
     @classmethod
     def getLoader(cls, info: strawberry.types.Info):
-        return getLoaders(info).documents
+        return getLoadersFromInfo(info).DocumentModel
+ 
+    dspace_id: typing.Optional[IDType] = strawberry.field(
+        description="primary key", 
+        default=None,
+        permission_classes=[OnlyForAuthentized]
+    )
+
+    name: typing.Optional[str] = strawberry.field(
+        default=None,
+        description="""Document name assigned by an administrator""",
+        permission_classes=[
+            OnlyForAuthentized
+        ]
+        )
     
-    @classmethod
-    async def resolve_reference(cls, info: strawberry.types.Info, id: uuid.UUID):
-        result = None
-        if id is not None:
-            loader = getLoaders(info=info).documents
-            # print(loader, flush=True)
-            if isinstance(id, str):
-                id = uuid.UUID(id)
-            result = await loader.load(id)
-            if result is not None:
-                result._type_definition = cls._type_definition  # little hack :)
-                result.__strawberry_definition__ = (
-                    cls._type_definition
-                )  # some version of strawberry changed :(
-        return result
-
-    @strawberry.field(description="""Primary key""")
-    def id(self) -> uuid.UUID:
-        return self.i
+    author_id: typing.Optional[IDType] = strawberry.field(
+        default=None,
+        description="ID of the author of the document",
+        permission_classes=[OnlyForAuthentized]
+    )
     
-    @strawberry.field(description="""Type of the document""")
-    def document_type(self) -> str:
-        return self.document_type
-
-    @strawberry.field(description="""Brief description""")
-    def description(self) -> Optional[str]:
-        return self.description
-
-    @strawberry.field(description="""Document Name""")
-    def name(self) -> str:
-        return self.name
-
-    @strawberry.field(description="""Timestamp""")
-    def lastchange(self) -> datetime.datetime:
-        return self.lastchange
-
-    @strawberry.field(description="""Initial timestamp""")
-    def created(self) -> datetime.datetime:
-        return self.created
-
-    @strawberry.field(description="""Author of the document""")
-    def author_id(self) -> uuid.UUID:
-        # sync method which returns Awaitable :)
-        return self.author_id
+    name_en: typing.Optional[str] = strawberry.field(
+        default=None,
+        description="""Document eng name assigned by an administrator""",
+        permission_classes=[
+            OnlyForAuthentized
+        ]
+        )
     
-    @strawberry.field(description="""Group of the document""")
-    def group_id(self) -> uuid.UUID:
-        # sync method which returns Awaitable :)
-        return self.group_id
-
-    @strawberry.field(description="""DSpace id""")
-    def dspace_id(self) -> uuid.UUID:
-        return self.dspace_id
-    
-    @strawberry.field(description="""DSpace id""")
-    async def folder(self) -> typing.Optional["DocumentFolderGQLModel"]:
-        return None
-
-
-@strawberry.input(description="""Input for document creation""")
-class DocumentInsertGQLModel:
-    description: Optional[str] = strawberry.field(
-        default=None, description="Brief description of document"
-    )
-    name: str = strawberry.field(default="Name", description="Document name")
-    author_id: Optional[uuid.UUID] = strawberry.field(
-        default=None, description="ID of Author"
-    )
-    group_id: Optional[uuid.UUID] = strawberry.field(default=None, description="Owner group ID")
-
-
-@strawberry.input(description="""Input for document update""")
-class DocumentUpdateGQLModel:
-    id: uuid.UUID = strawberry.field(default=None, description="Primary key")
-    lastchange: datetime.datetime = strawberry.field(
-        default=None, description="Timestamp"
-    )
-    description: Optional[str] = strawberry.field(
-        default=None, description="Brief description of document"
-    )
-    name: Optional[str] = strawberry.field(default=None, description="Document name")
-    author_id: Optional[uuid.UUID] = strawberry.field(
-        default=None, description="ID of Author"
-    )
-    group_id: Optional[uuid.UUID] = strawberry.field(default=None, description="Owner group ID")
-
-
-@strawberry.type(description="""Result of operation""")
-class DocumentResultGQLModel:
-    id: Optional[uuid.UUID] = strawberry.field(
-        default=None, description="Primary key of table row"
-    )
-    msg: str = strawberry.field(
-        default=None, description="""result of operation, should be "ok" or "fail" """
+    group_id: typing.Optional[IDType] = strawberry.field(
+        description="ID of the group the document belongs to",
+        default=None,
+        permission_classes=[OnlyForAuthentized]
     )
 
-    dspace_response: str = strawberry.field(
-        default=None, description="""DSPACE response JSON to DICT"""
+    folder_id: typing.Optional[IDType] = strawberry.field(
+        description="ID of the folder the document belongs to",
+        default=None,
+        permission_classes=[OnlyForAuthentized]
     )
 
-    @strawberry.field(description="""Result of drone operation""")
-    async def document(
-        self, info: strawberry.types.Info
-    ) -> Union[DocumentGQLModel, None]:
-        result = await DocumentGQLModel.resolve_reference(info, self.id)
-        return result
-
-
-@strawberry.type(description="""Result of operation""")
-class DspaceResultModel:
-    msg: str = strawberry.field(default=None, description="""status of operation""")
-
-    response: Optional[str] = strawberry.field(
-        default=None, description="""DSPACE response JSON in list"""
+    description: typing.Optional[str] = strawberry.field(
+        description="Brief description of the document",
+        default=None,
+        permission_classes=[OnlyForAuthentized]
     )
 
-
-#####################################################################
-#
-# Special fields for query
-#
-#####################################################################
-@strawberry.field(description="""Rows of documents""")
-async def documents_page(
-    self,
-    info: strawberry.types.Info,
-    skip: Optional[int] = 0,
-    limit: Optional[int] = 100,
-) -> List[DocumentGQLModel]:
-    loader = getLoaders(info).documents
-    rows = await loader.page(skip=skip, limit=limit)
-
-    return rows
-
-
-@strawberry.field(description="""Returns document by id""")
-async def document_by_id(
-    self, info: strawberry.types.Info, id: uuid.UUID
-) -> Optional[DocumentResultGQLModel]:
-    result = DocumentResultGQLModel()
-    document = await DocumentGQLModel.resolve_reference(info, id)
-
-    response_json = await getItem(document.dspace_id)
-    result.dspace_response = str(response_json)
-
-    if result.dspace_response is None:
-        result.msg = "Fail"
-        result.id = None
-
-    else:
-        result.msg = "Ok"
-        result.id = id
-
-    return result
-
-
-@strawberry.field(description="Get bitstream from dpsace")
-async def dspace_get_bitstream(
-    self, info: strawberry.types.Info, id: uuid.UUID
-) -> Optional[DspaceResultModel]:
-
-    result = DspaceResultModel()
-    document = await DocumentGQLModel.resolve_reference(info, id)
-    
-    # get budle id WARNING: HARDCODED [0] its a list!
-    response_json = await getBundleId(document.dspace_id)
-    print(response_json)
-    bundlesId = response_json["response"]["_embedded"]["bundles"][0]["uuid"]
-
-
-    # get bistream id
-    response_json = await getBitstreamItem(bundlesId)
-    if len(response_json["response"]["_embedded"]["bitstreams"]) > 0:
-        bitstreamId = response_json["response"]["_embedded"]["bitstreams"][0]["uuid"]
-        bitstreamName = response_json["response"]["_embedded"]["bitstreams"][0]["name"]
-    else:
-        result.msg = "No Content"
-        return result
-
-    # download specific bitstream content
-    response = await downloadItemContent(bitstreamId, bitstreamName)
-    result.response = response["response"]
-    if response["msg"] == 200:
-        result.msg = "Ok"
-    elif response["msg"] == 204:
-        result.msg = "No Content"
-    elif response["msg"] == 401:
-        result.msg = "Unauthorized"
-    elif response["msg"] == 403:
-        result.msg = "Forbidden"
-    elif response["msg"] == 404:
-        result.msg = "Not found"
-
-    return result
-
-
-@strawberry.field(description="""communities""")
-async def communities_page(
-    self,
-    info: strawberry.types.Info,
-    skip: Optional[int] = 0,
-    limit: Optional[int] = 100,
-) -> DspaceResultModel:
-    result = DspaceResultModel()
-
-    response = await getCommunities()
-    # size of communities
-
-    totalElements = response["response"]["page"]["totalElements"]
-
-    communities = []
-
-    # insert community uuid and name to a list to view in GQL endpoint
-    for element in range(totalElements):
-        uuid = response["response"]["_embedded"]["communities"][element]["uuid"]
-        name = response["response"]["_embedded"]["communities"][element]["name"]
-        communities.append({uuid, name})
-
-    result.response = str(communities)
-
-    if response["msg"] == 200:
-        result.msg = "Ok"
-    elif response["msg"] == 204:
-        result.msg = "No Content"
-    elif response["msg"] == 401:
-        result.msg = "Unauthorized"
-    elif response["msg"] == 403:
-        result.msg = "Forbidden"
-    elif response["msg"] == 404:
-        result.msg = "Not found"
-
-    return result
-
-
-@strawberry.field(description="""collections""")
-async def collections_page(
-    self,
-    info: strawberry.types.Info,
-    skip: Optional[int] = 0,
-    limit: Optional[int] = 100,
-) -> DspaceResultModel:
-    result = DspaceResultModel()
-
-    response = await getCollections()
-    # size of communities
-
-    totalElements = response["response"]["page"]["totalElements"]
-
-    collections = []
-
-    # insert community uuid and name to a list to view in GQL endpoint
-    for element in range(totalElements):
-        uuid = response["response"]["_embedded"]["collections"][element]["uuid"]
-        name = response["response"]["_embedded"]["collections"][element]["name"]
-        collections.append({uuid, name})
-
-    result.response = str(collections)
-
-    if response["msg"] == 200:
-        result.msg = "Ok"
-    elif response["msg"] == 204:
-        result.msg = "No Content"
-    elif response["msg"] == 401:
-        result.msg = "Unauthorized"
-    elif response["msg"] == 403:
-        result.msg = "Forbidden"
-    elif response["msg"] == 404:
-        result.msg = "Not found"
-
-    return result
-
-
-#####################################################################
-#
-# Mutation section
-#
-#####################################################################
-from uoishelpers.resolvers import Insert, InsertError
-from uoishelpers.resolvers import Update, UpdateError
-from uoishelpers.resolvers import Delete, DeleteError
-
-@strawberry.mutation(description="Defines a new document")
-async def document_insert(
-    self,
-    info: strawberry.types.Info,
-    document: DocumentInsertGQLModel,
-    collectionId: uuid.UUID,
-    type: Optional[str],
-    language: Optional[str],
-) -> DocumentResultGQLModel:
-    loader = getLoaders(info).documents
-    result = DocumentResultGQLModel()
-
-    # DSpace reguest to create an item and returns its uuid
-    response = await createItem(
-        collectionId=collectionId,
-        title=document.name,
-        author=document.author_id,
-        type=type,
-        language=language,
+    document_type: typing.Optional[str] = strawberry.field(
+        description="Type of the document",
+        default=None,
+        permission_classes=[OnlyForAuthentized]
     )
 
-    # seperate id from response
-    itemId = response["response"]["uuid"]
+    created: typing.Optional[datetime.date] = strawberry.field(
+        description="Creation timestamp",
+        default=None,
+        permission_classes=[OnlyForAuthentized]
+    )
 
-    if isinstance(itemId, str):
-        itemId = uuid.UUID(itemId)
-    document.dspace_id = itemId
-    result.dspace_response = str(response["response"])
-    # await addTitleItem(itemsId=itemId, titleName=document.name)
-    await addDescriptionItem(itemsId=itemId, description=document.description)
-
-    await addBundleItem(itemsId=itemId)
-
-    row = await loader.insert(document)
-
-    if row is None:
-        result.id = None
-        result.msg = "Fail"
-    else:
-        result.id = row.id
-        result.msg = "Ok"
-    return result
-
-
-@strawberry.mutation(description="Update existing document")
-async def document_update(
-    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel) -> typing.Union[DocumentResultGQLModel, UpdateError[DocumentResultGQLModel]]:
-    loader = getLoaders(info).documents
-
-    newName = document.name
-    newDescription = document.description
-
-    document = await DocumentGQLModel.resolve_reference(info, document.id)
-
-    # DSPACE API reguest to update item name/title
-    if newName != None:
-        document.name = newName
-        response_status = await updateTitleItem(document.dspace_id, newName)
-
-    # DSPACE API reguest to update description
-    if newDescription != None:
-        document.description = newDescription
-        response_status = await updateDescriptionItem(
-            document.dspace_id, newDescription
+    lastchange: typing.Optional[datetime.date] = strawberry.field(
+        description="Last change timestamp",
+        default=None,
+        permission_classes=[OnlyForAuthentized]
+    )
+        
+    label: typing.Optional[str] = strawberry.field(
+        default=None,
+        description="""Document full name assigned by an administrator""",
+        permission_classes=[
+            OnlyForAuthentized
+        ]
         )
 
-    result = DocumentResultGQLModel()
-    row = await loader.update(document)
-    if row is None:
-        result.id = None
-        result.msg = "Fail"
-    else:
-        result.id = row.id
-        result.msg = "Ok"
+    startdate: typing.Optional[datetime.datetime] = strawberry.field(
+        default=None,
+        description="""Document datetime """,
+        permission_classes=[
+            OnlyForAuthentized
+        ]
+        )
 
-    return result
+    enddate: typing.Optional[datetime.datetime] = strawberry.field(
+        default=None,
+        description="""Document datetime """,
+        permission_classes=[
+            OnlyForAuthentized
+        ]
+        )
+
+    # address
+    address: typing.Optional[str] = strawberry.field(
+        default=None,
+        description="""Document address""",
+        permission_classes=[
+            OnlyForAuthentized
+        ]
+    )
+    # valid
+    valid: typing.Optional[bool] = strawberry.field(
+        default=None,
+        description="""is the Document still valid""",
+        permission_classes=[
+            OnlyForAuthentized
+            ]
+    )
+
+    capacity: typing.Optional[int] = strawberry.field(
+        default=None,
+        description="""Document's capacity""",
+        permission_classes=[
+            OnlyForAuthentized
+            ]
+    )
+
+    # manager_id
+
+    # address
+# geometry: typing.Optional[str] = strawberry.field(
+#     default=None,
+#     description="""Document geometry (SVG)""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ]
+# )
+
+# geolocation: typing.Optional[str] = strawberry.field(
+#     default=None,
+#     description="""Document geo address (WGS84+zoom)""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ]
+# )
+
+# group_id: typing.Optional[IDType] = strawberry.field(
+#     default=None,
+#     description="""Document geo address (WGS84+zoom)""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ]
+# )
+
+# Documenttype_id: typing.Optional[IDType] = strawberry.field(
+#     default=None,
+#     description="""Document geo address (WGS84+zoom)""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ]
+# )
+
+# master_Document_id: typing.Optional[IDType] = strawberry.field(
+#     default=None,
+#     description="""Document geo address (WGS84+zoom)""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ]
+# )
+
+# type: typing.Optional["DocumentTypeGQLModel"] = strawberry.field(
+#     description="""Document type""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ],
+#     resolver=ScalarResolver["DocumentTypeGQLModel"](fkey_field_name="Documenttype_id")
+# )
+
+# master_Document: typing.Optional["DocumentGQLModel"] = strawberry.field(
+#     description="""Document above this""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#     ],
+#     resolver=ScalarResolver["DocumentGQLModel"](fkey_field_name="master_Document_id")
+# )
+
+# sub_facilities: typing.List["DocumentGQLModel"] = strawberry.field(
+#     description="""Facilities inside Document (like buildings in an areal)""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ],
+#     resolver=VectorResolver["DocumentGQLModel"](fkey_field_name="master_Document_id", whereType=None)
+# )
+
+# group: typing.Optional["GroupGQLModel"] =strawberry.field(
+#     description="""Document management group""",
+#     permission_classes=[
+#         OnlyForAuthentized
+#         ],
+#     resolver=ScalarResolver["GroupGQLModel"](fkey_field_name="group_id")
+# )
 
 
-@strawberry.mutation(description="Add bitstream to dpsace")
-async def dspace_add_bitstream(
-    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel, filename: str) -> typing.Union[DspaceResultModel, InsertError[DspaceResultModel]]:
-    result = DspaceResultModel()
-
-    document = await DocumentGQLModel.resolve_reference(info, document.id)
-
-    # get budle id
-    response_json = await getBundleId(document.dspace_id)
-    bundleId = response_json["response"]["_embedded"]["bundles"][0]["uuid"]
-
-    # add bitstream to that bundle
-    response = await addBitstreamsItem(bundleId=bundleId, filename=filename)
-
-    result.response = str(response["response"])
-
-    if response["msg"] == 201:
-        result.msg = "Ok"
-    elif response["msg"] == 400:
-        result.msg = "Bad Request"
-    elif response["msg"] == 401:
-        result.msg = "Unauthorized"
-    elif response["msg"] == 403:
-        result.msg = "Forbidden"
-    elif response["msg"] == 404:
-        result.msg = "Not found"
-
-    return result
 
 
-@strawberry.mutation(description="Create new comunnity")
-async def community_insert(
-    self, info: strawberry.types.Info, name: str, language: str) -> typing.Union [DspaceResultModel, InsertError[DspaceResultModel]]:
-    result = DspaceResultModel()
+@createInputs
+@dataclasses.dataclass
+class DocumentInputFilter:
+    name: str
+    name_en: str
+    valid: bool
+    label: str
+    capacity: int
+    group_id: IDType
+    master_Document_id: IDType
+    Documenttype_id: IDType
 
-    response = await createCommunity(name, language)
-    result.response = str(response["response"])
+document_by_id = strawberry.field(
+        description="""Finds an Document their id""",
+        permission_classes=[OnlyForAuthentized],
+        graphql_type=typing.Optional[DocumentGQLModel],
+        resolver=DocumentGQLModel.load_with_loader
+        )
 
-    if response["msg"] == 201:
-        result.msg = "Ok"
-    elif response["msg"] == 401:
-        result.msg = "Unauthorized"
+document_folder_by_id = strawberry.field(
+        description="""Finds an Folder their id""",
+        permission_classes=[OnlyForAuthentized],
+        graphql_type=typing.Optional[DocumentGQLModel],
+        resolver=DocumentGQLModel.load_with_loader
+        )
 
-    return result
+document_page = strawberry.field(
+        description="""Finds paged facilities""",
+        permission_classes=[OnlyForAuthentized],
+        resolver=PageResolver[DocumentGQLModel](whereType=DocumentInputFilter)
+        )    
+
+# region Document
+@strawberry.input(description="initial attributes for Document insert")
+class DocumentInsertGQLModel:
+    name: str = strawberry.field(description="name of the new Document")
+    documenttype_id: typing.Optional[IDType] = strawberry.field(description="Document type", default=None)
+    id: typing.Optional[IDType] = strawberry.field(description="primary key (UUID), could be client generated", default=None)
+
+    name_en: typing.Optional[str] = strawberry.field(description="english name of Document", default="")
+    label: typing.Optional[str] = strawberry.field(description="full name (including masterDocument)", default="")
+    address: typing.Optional[str] = strawberry.field(description="postal address", default="")
+    valid: typing.Optional[bool] = strawberry.field(description="if Document exists", default=True)
+    capacity: typing.Optional[int] = strawberry.field(description="Document capacity", default=0)
+    geometry: typing.Optional[str] = strawberry.field(description="SVG overlay for leaflet", default="")
+    geolocation: typing.Optional[str] = strawberry.field(description="WSGBLX;WGSBLY;ZOOM", default="")
+
+    group_id: typing.Optional[IDType] = strawberry.field(description="group which is responsible for management of this Document", default=None)
+    master_Document_id: typing.Optional[IDType] = strawberry.field(description="to which Document this Document belongs", default=None)
+    rbacobject_id: typing.Optional[IDType] = \
+        strawberry.field(description="group_id or user_id defines access rights", default=None)
+    createdby_id: strawberry.Private[IDType] = None
+
+@strawberry.input(description="set of updateable attributes")
+class DocumentUpdateGQLModel:
+    lastchange: datetime.datetime = strawberry.field(description="timestamp")
+    id: IDType = strawberry.field(description="primary key")
+
+    name: typing.Optional[str] = strawberry.field(description="name of the new Document", default=None)
+    documenttype_id: typing.Optional[IDType] = strawberry.field(description="Document type", default=None)
+
+    name_en: typing.Optional[str] = strawberry.field(description="english name of Document", default=None)
+    label: typing.Optional[str] = strawberry.field(description="full name (including masterDocument)", default=None)
+    address: typing.Optional[str] = strawberry.field(description="postal address", default=None)
+    valid: typing.Optional[bool] = strawberry.field(description="if Document exists", default=None)
+    capacity: typing.Optional[int] = strawberry.field(description="Document capacity", default=None)
+    geometry: typing.Optional[str] = strawberry.field(description="SVG overlay for leaflet", default=None)
+    geolocation: typing.Optional[str] = strawberry.field(description="WSGBLX;WGSBLY;ZOOM", default=None)
+
+    group_id: typing.Optional[IDType] = strawberry.field(description="group which is responsible for management of this Document", default=None)
+    master_document_id: typing.Optional[IDType] = strawberry.field(description="to which Document this Document belongs", default=None)
+    changedby_id: strawberry.Private[IDType] = None
+
+@strawberry.input(description="attributes needed for operation delete")
+class DocumentDeleteGQLModel:
+    lastchange: datetime.datetime = strawberry.field(description="timestamp")
+    id: IDType = strawberry.field(description="primary key")
+
+@strawberry.mutation(
+        description="Updates the Document",
+        permission_classes=[
+            OnlyForAuthentized,
+            SimpleUpdatePermission[DocumentGQLModel](roles=["administrátor", "administrátor budov"])
+        ]
+    )
+async def document_update(self, info: strawberry.types.Info, Document: typing.Annotated[DocumentUpdateGQLModel, strawberry.argument(description="desc")]) -> typing.Union[DocumentGQLModel, UpdateError[DocumentGQLModel]]:
+    return await Update[DocumentGQLModel].DoItSafeWay(info=info, entity=Document)
+
+@strawberry.mutation(
+        description="Creates a Document, available only for admins",
+        permission_classes=[
+            OnlyForAuthentized,
+            SimpleInsertPermission[DocumentGQLModel](roles=["administrátor", "administrátor budov"])
+        ]
+    )
+async def document_insert(self, info: strawberry.types.Info, Document: DocumentInsertGQLModel) -> typing.Union[DocumentGQLModel, InsertError[DocumentGQLModel]]:
+    Document.rbacobject_id = Document.rbacobject_id if Document.rbacobject_id else Document.group_id
+    return await Insert[DocumentGQLModel].DoItSafeWay(info=info, entity=Document)
+
+@strawberry.mutation(
+        description="Delete the Document, available only for admins",
+        permission_classes=[
+            OnlyForAuthentized,
+            SimpleDeletePermission[DocumentGQLModel](roles=["administrátor", "administrátor budov"])
+        ]
+    )
+async def document_delete(self, info: strawberry.types.Info, Document: DocumentDeleteGQLModel) -> typing.Optional[DeleteError[DocumentGQLModel]]:
+    return await Delete[DocumentGQLModel].DoItSafeWay(info=info, entity=Document)
 
 
-@strawberry.mutation(description="Create new collection")
-async def collection_insert(
-    self, info: strawberry.types.Info, parentId: uuid.UUID, name: str, language: str) -> typing.Union [DspaceResultModel, InsertError[DspaceResultModel]]:
-    result = DspaceResultModel()
 
-    response = await createCollection(parentId=parentId, name=name, language=language)
+# class RBACUpdatePermission(SimpleUpdatePermission):
+#     async def has_permission(
+#         self, source: typing.Any, info: strawberry.types.Info, **kwargs: typing.Any
+#     ) -> typing.Union[bool, typing.Awaitable[bool]]:
+#         cls = type(self)
+#         loader = cls.getLoader(info=info)
+#         first_item = next(iter(kwargs.values()), None)
+#         assert first_item is not None, f"item to update is unknown {kwargs}"
+#         dbrow = await loader.load(first_item.id)
+#         rbacobject_id = getattr(dbrow, "rbacobject_id", None)
+#         pass        
 
-    result.response = str(response["response"])
-
-    if response["msg"] == 201:
-        result.msg = "Ok"
-    elif response["msg"] == 401:
-        result.msg = "Unauthorized"
-    elif response["msg"] == 403:
-        result.msg = "Forbidden"
-    elif response["msg"] == 422:
-        result.msg = "UNPROCESSABLE ENTITY"
-
-    return result
-
-
-@strawberry.mutation(description="Deletes a document")
-async def document_delete(
-    self, info: strawberry.types.Info, document: DocumentUpdateGQLModel) -> typing.Union [DocumentResultGQLModel, DeleteError[DocumentResultGQLModel]]:
-    loader = getLoaders(info).documents
-    result = DocumentResultGQLModel()
-    rows = await loader.filter_by(id=document.id)
-    row = next(rows, None)
-
-    if row is not None:
-        response_status = await setWithdrawnItem(itemId=row.dspace_id, value="true")
-
-        if response_status["msg"] == 200:
-            row = await loader.delete(row.id)
-            result.msg = "Ok"
-
-    else:
-        result.id = None
-        result.msg = "Fail"
-
-    return result
+# endregion
+ 

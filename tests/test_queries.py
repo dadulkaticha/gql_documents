@@ -39,6 +39,7 @@ from .gt_utils import (
 )
 
 test_document_by_id = createByIdTest2(tableName="documents")
+test_document_folder_by_id = createByIdTest2(tableName="document_folders")
 #test_facility_coverage = createByIdTest2(tableName="facilities", queryName="coverage")
 #test_facility_update = createUpdateTest2(tableName="facilities", variables={"name": "newname"})
 #test_facility_create = createTest2(tableName="facilities", queryName="create", variables={"name": "newname"})

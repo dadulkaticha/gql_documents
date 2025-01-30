@@ -59,7 +59,7 @@ async def initDB(asyncSessionMaker, filename="systemdata.json"):
     dbModels = []
     if not (default == os.environ.get("DEMO", defaultNoDemo)):
         dbModels = [
-            DocumentModel, DocumentFolderModel,
+            DocumentFolderModel,DocumentModel
         ]
 
     jsonData = get_demodata(filename)

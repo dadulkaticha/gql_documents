@@ -8,5 +8,5 @@ def UUIDColumn():
     return Column(Uuid, primary_key=True, comment="primary key", default=uuid)
 
 
-# def UUIDFKey(comment=None, nullable=True, **kwargs):
-#     return Column(Uuid, index=True, nullable=nullable, **kwargs)
+def UUIDFKey(fk, comment=None, nullable=True, **kwargs):
+    return Column(Uuid, index=True, nullable=nullable, **kwargs)

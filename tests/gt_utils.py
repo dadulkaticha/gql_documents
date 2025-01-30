@@ -67,6 +67,8 @@ print("dir_path", dir_path, flush=True)
 
 location = "./src/tests/gqls"
 location = re.sub(r"\\tests\\.+", r"\\tests\\gqls", dir_path)
+#location = re.sub(r"/tests", r"/tests/gqls", location)
+location = location.replace("tests", "tests/gqls")
 # location
 print("location", location, flush=True)
 logging.info(f"Queries location {dir_path} => {location}")

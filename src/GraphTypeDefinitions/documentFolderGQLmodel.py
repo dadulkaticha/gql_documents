@@ -9,28 +9,30 @@ DocumentGQLModel=typing.Annotated["DocumentGQLModel", strawberry.lazy(".document
 class DocumentFolderGQLModel:
     @classmethod
     def getLoader(cls, info: strawberry.types.Info):
-        return getLoadersFromInfo(info).documents
+        loader = getLoadersFromInfo(info).document_folders
+        if not loader:
+            raise RuntimeError("Loader for document_folders not found")
+        return loader
+
     @classmethod
     async def resolve_reference(cls, info: strawberry.types.Info, id: uuid.UUID):
-        result = None
-        if id is not None:
-            loader = getLoadersFromInfo(info=info).document_folders
-            # print(loader, flush=True)
-            if isinstance(id, str):
-                id = uuid.UUID(id)
-            result = await loader.load(id)
-            if result is not None:
-                result._type_definition = cls._type_definition  # little hack :)
-                result.__strawberry_definition__ = (
-                    cls._type_definition
-                )  # some version of strawberry changed :(
-        return result
-    
+        if not id:
+            raise ValueError("Invalid ID: ID cannot be None")
+
+        loader = cls.getLoader(info)
+        folder_data = await loader.load(id)
+
+        if not folder_data:
+            raise ValueError(f"No document folder found for ID: {id}")
+
+        # Convert database object to the GraphQL model
+        return cls(**folder_data.__dict__)
+
     id: strawberry.ID
-    name: str
-    description: str
-    group_id: strawberry.ID
-    parent_id: strawberry.ID
+    name: typing.Optional[str]
+    description: typing.Optional[str]
+    group_id: typing.Optional[strawberry.ID]
+    parent_id: typing.Optional[strawberry.ID]
     created: str
     lastchange: str
 
@@ -38,12 +40,17 @@ class DocumentFolderGQLModel:
     async def documents(self, info) -> typing.List["DocumentGQLModel"]:
         from .documentGQLmodel import DocumentGQLModel
         loader = getLoadersFromInfo(info).documents
-        results = await loader.filter_by(folder_id=self.id)
+        return await loader.filter_by(folder_id=self.id)
         return results
     
+folder_page = strawberry.field(
+    description="Returns a page of document folders",
+    resolver=DocumentFolderGQLModel.getLoader,
+    graphql_type=typing.List[DocumentFolderGQLModel],
+)
 
-document_folder_by_id=strawberry.field(
-    description="List of document folders",
+document_folder_by_id = strawberry.field(
+    description="Finds a document folder by its ID",
     resolver=DocumentFolderGQLModel.resolve_reference,
     graphql_type=typing.Optional[DocumentFolderGQLModel],
-    )
+)

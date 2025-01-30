@@ -1,7 +1,7 @@
 from uoishelpers.dataloaders import createIdLoader
 from functools import cache
 
-from src.DBDefinitions import (
+from src.DBDefinitions.documentDBModel import (
     DocumentModel, DocumentFolderModel
 )
 
@@ -10,11 +10,11 @@ def createLoaders(asyncSessionMaker):
     class Loaders:
         @property
         @cache
-        def documents(self):
+        def DocumentModel(self):
             return createIdLoader(asyncSessionMaker, DocumentModel)
         @property
         @cache
-        def folders(self):
+        def document_folders(self):
             return createIdLoader(asyncSessionMaker, DocumentFolderModel)
     return Loaders()
 

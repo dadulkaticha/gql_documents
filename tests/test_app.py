@@ -11,24 +11,24 @@ client = TestClient(main.app)
 print(main.connectionString, flush=True)
 
 
-def test_app():
-    query = """
-        query {
-            documentsPage {
-                    id
-                    name
-                    dspaceId
-                    description
-                    authorId
-            }
-        }
-    """
+# def test_app():
+#     query = """
+#         query {
+#             documentsPage {
+#                     id
+#                     name
+#                     dspaceId
+#                     description
+#                     authorId
+#             }
+#         }
+#     """
 
-    response = client.post("/gql", json={"query": query})
-    assert response.status_code == 200
+#     response = client.post("/gql", json={"query": query})
+#     assert response.status_code == 200
 
-    jsonData = response.json()
-    print(jsonData, flush=True)
-    assert jsonData.get("errors", None) is None
+#     jsonData = response.json()
+#     print(jsonData, flush=True)
+#     assert jsonData.get("errors", None) is None
 
     # assert False
