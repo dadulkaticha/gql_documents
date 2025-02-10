@@ -1,12 +1,16 @@
 import typing
 import strawberry
 import uuid
-from uoishelpers.resolvers import getLoadersFromInfo
+import dataclasses
+from uoishelpers.resolvers import getLoadersFromInfo, PageResolver, createInputs
+from uoishelpers.gqlpermissions import OnlyForAuthentized
 
-DocumentGQLModel=typing.Annotated["DocumentGQLModel", strawberry.lazy(".documentGQLmodel")]
+from .BaseGQLModel import BaseGQLModel
+DocumentGQLModel = typing.Annotated["DocumentGQLModel", strawberry.lazy(".documentGQLmodel")]
+
 
 @strawberry.type(description="Document folder")
-class DocumentFolderGQLModel:
+class DocumentFolderGQLModel(BaseGQLModel):
     @classmethod
     def getLoader(cls, info: strawberry.types.Info):
         loader = getLoadersFromInfo(info).document_folders
@@ -24,17 +28,17 @@ class DocumentFolderGQLModel:
 
         if not folder_data:
             raise ValueError(f"No document folder found for ID: {id}")
-
+        return cls.from_dataclass(folder_data)
         # Convert database object to the GraphQL model
-        return cls(**folder_data.__dict__)
+        # return cls(**folder_data.__dict__)
 
-    id: strawberry.ID
+    # id: strawberry.ID
     name: typing.Optional[str]
     description: typing.Optional[str]
     group_id: typing.Optional[strawberry.ID]
     parent_id: typing.Optional[strawberry.ID]
-    created: str
-    lastchange: str
+    # created: str
+    # lastchange: str
 
     @strawberry.field(description="List of documents in the folder")
     async def documents(self, info) -> typing.List["DocumentGQLModel"]:
@@ -43,9 +47,16 @@ class DocumentFolderGQLModel:
         return await loader.filter_by(folder_id=self.id)
         return results
     
+@createInputs
+@dataclasses.dataclass   
+class DocumentFolderInputFilter:
+    name: str
+
 folder_page = strawberry.field(
-    description="Returns a page of document folders",
-    resolver=DocumentFolderGQLModel.getLoader,
+    description="Finds paged facilities",
+    permission_classes=[OnlyForAuthentized],
+    resolver=PageResolver[DocumentGQLModel](whereType=DocumentFolderInputFilter),
+    # resolver=PageResolver[DocumentGQLModel](whereType=None),
     graphql_type=typing.List[DocumentFolderGQLModel],
 )
 

@@ -41,7 +41,7 @@ class Query:
 
     document_page = document_page
     document_by_id = document_by_id
-    folder_page = folder_page
+    document_folder_page = folder_page
     document_folder_by_id = document_folder_by_id
     # dspace_get_bitstream = dspace_get_bitstream
     # communities_page = communities_page
@@ -54,7 +54,7 @@ from uoishelpers.schema import WhoAmIExtension
 extensions = []
 schema = strawberry.federation.Schema(
     query=Query, 
-    # mutation=Mutation,
+    mutation=Mutation,
     extensions=[])
 
 schema.extensions.append(WhoAmIExtension)

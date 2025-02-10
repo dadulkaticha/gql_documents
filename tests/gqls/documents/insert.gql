@@ -1,0 +1,18 @@
+mutation MyMutation ($name: String!, $id: UUID){
+  result: documentInsert(
+    Document: {name: $name, id: $id}){
+    __typename
+    ...Document
+    ...InsertError
+  }
+}
+fragment InsertError on InsertError {
+	msg
+  failed
+  input
+}
+fragment Document on DocumentGQLModel {
+  id
+  lastchange
+  name
+}
