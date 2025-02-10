@@ -116,7 +116,7 @@ class MyGraphQL(GraphQL):
 from src.GraphTypeDefinitions import schema
 
 ## ASGI app, kterou "moutneme"
-graphql_app = MyGraphQL(schema, graphiql=True, allow_queries_via_get=True)
+graphql_app = MyGraphQL(schema, graphql_ide=True, allow_queries_via_get=True)
 
 app = FastAPI()
 
