@@ -1,5 +1,11 @@
-query ReadDocument ($id:UUID!){
+query ReadDocument($id: UUID!) {
   documentById(id: $id) {
     id
+    lastchange
+    name
+    nameEn
+    documentType
+    createdby{id}
+    changedby{id}
   }
 }

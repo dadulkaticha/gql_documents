@@ -1,0 +1,18 @@
+mutation documentUpdate($id: UUID!, $lastchange: DateTime!, $name: String!, $nameEn: String, $documenttypeId: UUID) {
+  documentUpdate(
+    Document: {lastchange: $lastchange, id: $id, name: $name, nameEn: $nameEn, documenttypeId: $documenttypeId}
+  ) {
+    ... on DocumentGQLModelUpdateError {
+      input
+      failed
+      msg
+    }
+    ... on DocumentGQLModel {
+      id
+      name
+      lastchange
+      nameEn
+      documentType
+    }
+  }
+}
