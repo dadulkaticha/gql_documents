@@ -41,7 +41,7 @@ class DocumentFolderGQLModel(BaseGQLModel):
     # lastchange: str
 
     @strawberry.field(description="List of documents in the folder")
-    async def documents(self, info) -> typing.List["DocumentGQLModel"]:
+    async def documents(self, info: strawberry.types.Info) -> typing.List["DocumentGQLModel"]:
         from .documentGQLmodel import DocumentGQLModel
         loader = getLoadersFromInfo(info).documents
         return await loader.filter_by(folder_id=self.id)

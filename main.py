@@ -1,5 +1,7 @@
 import os
 
+from contextlib import asynccontextmanager
+
 from typing import List
 import typing
 import asyncio
@@ -118,22 +120,21 @@ from src.GraphTypeDefinitions import schema
 ## ASGI app, kterou "moutneme"
 graphql_app = MyGraphQL(schema, graphql_ide=True, allow_queries_via_get=True)
 
-app = FastAPI()
-
 async def get_context():
     initizalizedEngine = await RunOnceAndReturnSessionMaker()
     context = createLoadersContext(initizalizedEngine)
     return context
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    initizalizedEngine = await RunOnceAndReturnSessionMaker()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
 graphiql = GraphQLRouter(schema=schema, context_getter=get_context)
 
 app.include_router(graphiql, prefix="/gql")
-
-
-@app.on_event("startup")
-async def startup_event():
-    initizalizedEngine = await RunOnceAndReturnSessionMaker()
-    return None
 
 @app.get("/voyager", response_class=FileResponse)
 async def graphiql():
