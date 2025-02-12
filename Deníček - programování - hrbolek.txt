@@ -1,0 +1,15 @@
+1. 11. 2024 - přidání komentářů a descriptions, dopsáno changedby_id a document_type
+5. 11. 2024 - první commit
+7. 11. 2024 - první projektový den, úprava docker compose yml, první publish
+14. 11. 2024 - dodělání složky, kam se budou soubory rozdělovat a ukládat, commit
+27. 11. 2024 - zprovoznění voyager, tabulky v PG adminu, vytvoření documentFolderGQLmodel, přidání příkazu pro spuštění do README
+28. 11. 2024 - přestal mi fungovat celý docker a virtualizace
+2. 12. 2024 - docker a virtualizace zprovozněny, systemdata.json přidáno folders
+6. 1. 2025 - CRUD operace
+27. 1. 2025 - stažení testů, přejmenování souboru gql_domunents na src, změna importu na src, příprava testů
+28. 1. 2025 - přepsání celého GQL Ducoments, úplně v háji
+29. 1. 2025 - v query nemám documentsPage?, jeden test má coverage 82% i když tam je spousta chyb a varování
+30. 1. 2025 - read p - document_folders, folder_page a document_folder_by_id, funkční první test, druhý rozjíždíme
+31. 1. 2025 - fungují dva testy, pokrytí 86%
+10. 2. 2025 - fungují asi tři testy, pokrytí 90%, opraveny 3 warnings ze 6
+11. 2. 2025 - 0 warnings, pokrytí testů 90%
